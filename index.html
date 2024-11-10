@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIVATE SEVER</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1c1c1c;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 400px;
+            padding: 20px;
+            background-color: #222222;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #00ff00;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00;
+        }
+
+        .box {
+            margin: 10px 0;
+            padding: 12px;
+            background-color: #333333;
+            border-radius: 8px;
+            border: 2px solid #00ff00;
+            color: #ffffff;
+            font-size: 1.2em;
+            text-shadow: 0 0 3px #00ff00;
+        }
+
+        #timer {
+            color: #00ff00;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        #currentResult {
+            font-size: 1.2em;
+            color: #00ff00;
+        }
+
+        .history-list {
+            list-style-type: none;
+            padding: 0;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .history-item {
+            padding: 6px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #00ff00;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 0.9em;
+            text-shadow: 0 0 3px #00ff00;
+        }
+
+        /* Offline message styling */
+        #offlineMessage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-size: 2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 5px #00ff00, 0 0 15px #00ff00, 0 0 20px #00ff00;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PRIVATE SEVER</h1>
+
+    <div class="box">
+        <div>Period Number</div>
+        <div id="periodNumber">Loading...</div>
+    </div>
+
+    <div class="box">
+        <div>Timer</div>
+        <div id="timer">00:30</div>
+    </div>
+
+    <div class="box">
+        <div>Current Result</div>
+        <div id="currentResult">Waiting...</div>
+    </div>
+
+    <div class="box">
+        <div>History</div>
+        <ul id="history" class="history-list"></ul>
+    </div>
+</div>
+
+<div id="offlineMessage">Protected by Ishant</div>
+
+<script>
+    const periodNumberElement = document.getElementById('periodNumber');
+    const timerElement = document.getElementById('timer');
+    const currentResultElement = document.getElementById('currentResult');
+    const historyElement = document.getElementById('history');
+    const offlineMessage = document.getElementById('offlineMessage');
+
+    const results = [
+        'SMALL', 'BIG', 'SMALL', 'BIG', 'BIG', 'BIG', 'BIG', 'SMALL', 'BIG', 'SMALL',
+        'SMALL', 'BIG', 'BIG', 'BIG', 'SMALL', 'BIG', 'SMALL', 'BIG', 'BIG', 'SMALL',
+        'BIG', 'SMALL', 'SMALL', 'BIG', 'BIG', 'BIG', 'SMALL', 'BIG', 'SMALL', 'BIG',
+        'BIG', 'SMALL', 'SMALL', 'SMALL', 'SMALL', 'BIG', 'SMALL', 'BIG', 'SMALL', 'BIG',
+        'BIG', 'SMALL'
+    ];
+
+    let currentPeriodNumber = 0;
+    let currentResultIndex = -1;
+    let lastDisplayedPeriod = -1;
+
+    function updatePeriodAndResult() {
+        const now = new Date();
+        const utcYear = now.getUTCFullYear();
+        const utcMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
+        const utcDay = String(now.getUTCDate()).padStart(2, '0');
+        const utcHours = now.getUTCHours();
+        const utcMinutes = now.getUTCMinutes();
+        const utcSeconds = now.getUTCSeconds();
+
+        const totalMinutes = utcHours * 60 + utcMinutes;
+        const periodNumber = 1 + totalMinutes * 2 + (utcSeconds >= 30 ? 1 : 0);
+        const periodString = `${utcYear}${utcMonth}${utcDay}30${String(periodNumber).padStart(4, '0')}`;
+        
+        periodNumberElement.textContent = periodString;
+
+        if (periodNumber !== lastDisplayedPeriod && currentResultIndex < results.length - 1) {
+            currentResultIndex++;
+            const result = results[currentResultIndex];
+            currentResultElement.textContent = result;
+
+            const historyItem = document.createElement('li');
+            historyItem.textContent = `Period: ${periodString}, Result: ${result}`;
+            historyItem.className = 'history-item';
+            historyElement.prepend(historyItem);
+
+            lastDisplayedPeriod = periodNumber;
+        }
+    }
+
+    function startTimer() {
+        setInterval(() => {
+            const now = new Date();
+            const remainingSeconds = 30 - (now.getUTCSeconds() % 30);
+            const secondsDisplay = remainingSeconds.toString().padStart(2, '0');
+            timerElement.textContent = `00:${secondsDisplay}`;
+
+            if (remainingSeconds === 30) {
+                updatePeriodAndResult();
+            }
+        }, 1000);
+    }
+
+    function checkOnlineStatus() {
+        if (!navigator.onLine) {
+            offlineMessage.style.display = 'flex';
+        } else {
+            offlineMessage.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        startTimer();
+        checkOnlineStatus();
+    });
+
+    window.addEventListener('offline', checkOnlineStatus);
+    window.addEventListener('online', checkOnlineStatus);
+</script>
+
+</body>
+</html>
